@@ -31,6 +31,10 @@ const filesIn = [
     path: '../../../app13/frontend/src/app/login/login.component.ts',
     mark: '\n```\n',
   },
+  {
+    path: '../../../app13/frontend/src/app/login/login.module.ts',
+    mark: '\n```\n',
+  },
 ];
 const publish = (cmd) => {
   remove({ fileOut: cmd.fileOut });
