@@ -18,27 +18,30 @@ ng4:
 	docker-compose -f docker-compose.dev.yml down	
 ng5: 
 	docker system prune -a # delete all docker images in your computer
-ng6:
-	mkdir api
-	cd api && npm init -y
-	cd api && npm install nodemon --save-dev
-	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
-ng8:
-	#cd frontend && ng generate module app-routing --flat --module=app
-	cd frontend && ng generate component home
-	cd frontend && ng generate component header
-	cd frontend && ng generate component profile
-	cd frontend && ng generate component auth
-	cd frontend && ng generate module auth
-	cd frontend && ng generate service auth/auth
-	cd frontend && ng generate guard auth/auth
-	cd frontend && ng generate component auth/register
-	cd frontend && ng generate component auth/login
-	cd frontend && npm install bootstrap --save
-	cd frontend && npm install @auth0/angular-jwt --save
-	cd frontend && npm install moment --save
+ng10:
+	cd frontend && ng generate module login --routing
+	cd frontend && ng generate component login
+#ng6:
+#	mkdir api
+#	cd api && npm init -y
+#	cd api && npm install nodemon --save-dev
+#	cd api && npm install bcryptjs body-parser cors express jsonwebtoken mongoose validator --save	
+#ng8:
+#	#cd frontend && ng generate module app-routing --flat --module=app
+#	cd frontend && ng generate component home
+#	cd frontend && ng generate component header
+#	cd frontend && ng generate component profile
+#	cd frontend && ng generate component auth
+#	cd frontend && ng generate module auth
+#	cd frontend && ng generate service auth/auth
+#	cd frontend && ng generate guard auth/auth
+#	cd frontend && ng generate component auth/register
+#	cd frontend && ng generate component auth/login
+#	cd frontend && npm install bootstrap --save
+#	cd frontend && npm install @auth0/angular-jwt --save
+#	cd frontend && npm install moment --save
 
-ng9:
+#ng9:
 	#cd frontend && npm install angular-in-memory-web-api --save
 	#cd frontend && ng generate service InMemoryData
 	#cd frontend && ng generate component dish-search
@@ -194,7 +197,8 @@ module.exports = function (config) {
     "ng": "ng",
     "start": "ng serve --disableHostCheck=true --host=0.0.0.0 ",
     "build": "ng build",
-    "test": "ng test --watch=false --browsers=Chrome_without_sandox --code-coverage=true  ",
+    "test": "ng test ",
+    "test:ci": "ng test --watch=false --browsers=Chrome_without_sandox --code-coverage=true  ",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
@@ -283,4 +287,137 @@ export class AppComponent {
 ### ../../../app13/frontend/src/app/app.component.html 
 ```
 <router-outlet></router-outlet>
+```
+### ../../../app13/frontend/src/app/login/login.component.spec.ts 
+```
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { LoginComponent } from './login.component';
+import { ReactiveFormsModule } from '@angular/forms';
+
+describe('LoginComponent', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ LoginComponent ],
+      imports: [ReactiveFormsModule]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+  it('should render form with email and password inputs', () => {
+    const element = fixture.nativeElement;
+    expect(element.querySelector('form')).toBeTruthy();
+    expect(element.querySelector('#email')).toBeTruthy();
+    expect(element.querySelector('#password')).toBeTruthy();
+    expect(element.querySelector('button')).toBeTruthy();
+  });  
+  it('should return model invalid when form is empty', () => {
+    expect(component.form.valid).toBeFalsy();
+  });
+  it('should validate email input as required', () => {
+    const email = component.form.controls.email;
+    expect(email.valid).toBeFalsy();
+    expect(email.errors.required).toBeTruthy();
+  });
+  it('should validate password input as required', () => {
+    const password = component.form.controls.password;
+    expect(password.valid).toBeFalsy();
+    expect(password.errors.required).toBeTruthy();
+  });
+  it('should validate email format', () => {
+    const email = component.form.controls.email;
+    email.setValue('testing');
+    const errors = email.errors;
+    expect(errors.required).toBeFalsy();
+    expect(errors.pattern).toBeTruthy();
+    expect(email.valid).toBeFalsy();
+  });
+  it('should validate email format correct', () => {
+    const email = component.form.controls.email;
+    email.setValue('testing@gmail.com');
+    const errors = email.errors || {};
+    expect(errors.required).toBeFalsy();
+    expect(errors.pattern).toBeFalsy();
+    expect(email.valid).toBeTruthy();
+  });
+  it('should render email validation message when formControl is submitted and invalid', () => {
+    const elements: HTMLElement = fixture.nativeElement;
+    expect(elements.querySelector('#email-error')).toBeFalsy();
+    // component.onSubmit(); false positive
+    elements.querySelector('button').click(); //
+    fixture.detectChanges();
+    expect(elements.querySelector('#email-error')).toBeTruthy();
+    expect(elements.querySelector('#email-error').textContent).toContain(
+      'Please enter a valid email.'
+      );
+  });
+  it('should render password validation message when formControl is submitted and invalid', () => {
+    const elements: HTMLElement = fixture.nativeElement;
+    expect(elements.querySelector('#password-error')).toBeFalsy();
+    // component.onSubmit(); false positive
+    elements.querySelector('button').click(); //
+    fixture.detectChanges();
+    expect(elements.querySelector('#password-error')).toBeTruthy();
+    expect(elements.querySelector('#password-error').textContent).toContain(
+      'Please enter a valid password.'
+      );
+  });
+});
+
+
+```
+### ../../../app13/frontend/src/app/login/login.component.html 
+```
+<form [formGroup]="form" (ngSubmit)='onSubmit()'>
+    <input id="email" type="email" placeholder="Your email" />
+    <span *ngIf='submitted && form.controls.email.invalid' id='email-error'>Please enter a valid email.</span>
+    <input id="password" type="password" placeholder="********" />
+    <span *ngIf='submitted && form.controls.password.invalid' id='password-error'>Please enter a valid password.</span>
+    <button type="submit">Sign in</button>
+  </form>
+
+```
+### ../../../app13/frontend/src/app/login/login.component.ts 
+```
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+
+  form: FormGroup;
+  submitted = false;
+
+  constructor(private  formBuilder: FormBuilder) { }
+
+  ngOnInit(): void {
+    this.form = this.formBuilder.group({
+      email: ['', [Validators.required, Validators.pattern('[^ @]*@[^ @]*')]],
+      password: ['', Validators.required],
+    });
+  }
+
+  onSubmit() {
+      this.submitted = true;
+  }
+
+}
+
 ```
